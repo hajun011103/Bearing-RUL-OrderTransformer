@@ -43,18 +43,53 @@ Each run is one bearing driven to failure:
   recorded once every 600 s (a 60 s active window followed by a ~540 s rest).
   Member index `k` maps to acquisition start time `(k-1) * 600 s`.
 
-> **Where to download:** obtain the archives from the official challenge
-> distribution and drop them into `data/Train/`. Replace this line with the
-> exact source URL/DOI you are permitted to share. Do not re-host the raw data
-> here — check the challenge's data-usage terms before redistributing.
+**Where to download.** The data is distributed through the **KIMM Data Platform**
+(Korea Institute of Machinery & Materials) as the KSPHM–KIMM Machine Data
+Challenge dataset:
+
+- Platform (primary): <https://kimmdata.kimm.re.kr>
+- KIMM press release confirming the bearing-degradation data release:
+  <https://www.kimm.re.kr/sub0504/view/id/21037>
+- Challenge organizer (KSPHM, 한국PHM학회): <https://www.phm.or.kr/event/schedule.php>
+- Data contact: `smartdp@kimm.re.kr`
+
+There is **no anonymous public direct-download link** — the dataset pages are
+rendered client-side and access requires a platform account and/or challenge
+registration; the archives were distributed to registered participants. **Do not
+re-host the raw KIMM data in this repository**: no open license is stated, so it
+is provided under the platform terms / competition rules. If you hold the files
+as a participant, place them in `data/Train/` and cite the KIMM Data Platform.
 
 ## External FEMTO / PRONOSTIA data
 
 The domain-shift check in [`scripts/run_pronostia_order_test.py`](../scripts/run_pronostia_order_test.py)
 uses the NASA FEMTO / PRONOSTIA accelerated bearing life-test dataset
-(IEEE PHM 2012 Data Challenge). Download `Training_set.zip` / `Validation_Set.zip`
-from the public NASA Prognostics Data Repository / FEMTO distribution and place
-them under `data/external/femto/FEMTOBearingDataSet/`.
+(IEEE PHM 2012 Data Challenge). It is a public benchmark:
+
+- Direct download (~1.16 GB zip, no registration):
+  <https://phm-datasets.s3.amazonaws.com/NASA/10.+FEMTO+Bearing.zip>
+  (the `+` characters are URL-encoded spaces)
+- Authoritative index — NASA PCoE data repository, entry #10 "FEMTO Bearing":
+  <https://www.nasa.gov/intelligent-systems-division/discovery-and-systems-health/pcoe/pcoe-data-set-repository/>
+- Mirror: <https://data.phmsociety.org/nasa/>
+
+Unzip so that `Training_set.zip` / `Validation_Set.zip` land under
+`data/external/femto/FEMTOBearingDataSet/`. No explicit open license is posted, so
+link the NASA source and cite Nectoux et al. (2012) rather than re-hosting the
+zip. A community challenge-split mirror also exists:
+<https://github.com/wkzs111/phm-ieee-2012-data-challenge-dataset>.
+
+## Public variable-speed substitutes
+
+If you cannot access the KIMM data, the closest **variable-condition
+run-to-failure** benchmark is **XJTU-SY**
+(<https://github.com/WangBiaoXJTU/xjtu-sy-bearing-datasets>; 15 bearings, 25.6 kHz,
+3 speed/load conditions; cite Wang et al. 2020). Two openly re-hostable
+(CC BY 4.0) options are the University of Ottawa time-varying-speed set
+(<https://data.mendeley.com/datasets/v43hmbwxpm/2>; diagnosis, no RUL labels) and
+the KAIST run-to-failure set
+(<https://data.mendeley.com/datasets/5hcdd3tdvb/6>; constant speed, so only a
+partial match).
 
 ## Regenerating the feature table
 
