@@ -1,0 +1,17 @@
+{
+  "selected_scale": 0.9299999999999999,
+  "selected_smoothing": {
+    "method": "eol_quantile",
+    "quantile": 0.5,
+    "blend": 1.0
+  },
+  "inner_selection_score": 0.9028152668077012,
+  "honest": {
+    "rows": 116,
+    "score": 0.08627855305420033,
+    "mae_s": 9588.89614762931,
+    "rmse_s": 10037.34160020908,
+    "mean_er_percent": -375.1610434121481,
+    "over_prediction_rate": 1.0
+  }
+}

@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.cache/
+
+# Environments
+.conda/
+.conda_pkgs/
+.venv/
+venv/
+
+# Agent / tooling leftovers
+.codex
+.agents/
+
+# Large raw data — NEVER commit. See docs/data.md for how to obtain it.
+# Bearing vibration archives are multi-GB each and cannot go on GitHub.
+data/
+
+# Generated experiment outputs (multi-MB checkpoints, sweeps, per-fold dirs).
+# A few tiny curated files needed to reproduce the abstract test are committed
+# explicitly with `git add -f` (see docs/reproduce.md).
+artifacts/
+
+# Generated figures. The committed poster/result images currently embed the
+# superseded (leaky) 0.67 numbers, so they are excluded until regenerated from
+# the honest runs. The figure scripts (scripts/make_*_figures.py) stay in the
+# repo so they can be rebuilt.
+figures/
+
+# Logs and scratch
+*.log
+
+# OS cruft
+.DS_Store
+Thumbs.db

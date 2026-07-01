@@ -1,0 +1,104 @@
+{
+  "n_bearings": 4,
+  "bearings": [
+    "Train1",
+    "Train2",
+    "Train3",
+    "Train4"
+  ],
+  "raw": {
+    "rows": 454,
+    "score": 0.44132279642414984,
+    "mae_s": 16875.423828125,
+    "rmse_s": 19870.434521381663,
+    "mean_er_percent": -133.5761121393344,
+    "over_prediction_rate": 0.40308370044052866
+  },
+  "honest": {
+    "rows": 454,
+    "score": 0.46178358359822985,
+    "mae_s": 15925.041517887872,
+    "rmse_s": 18982.831330299414,
+    "mean_er_percent": -87.90646332341953,
+    "over_prediction_rate": 0.34140969162995594
+  },
+  "oracle": {
+    "rows": 454,
+    "score": 0.465766874003868,
+    "mae_s": 16530.9166017776,
+    "rmse_s": 19571.116839590555,
+    "mean_er_percent": -66.93322485628215,
+    "over_prediction_rate": 0.2907488986784141,
+    "selected_smoothing": {
+      "method": "eol_quantile",
+      "quantile": 0.5,
+      "blend": 0.5
+    }
+  },
+  "folds": [
+    {
+      "held_out": "Train1",
+      "train_pool": [
+        "Train2",
+        "Train3",
+        "Train4"
+      ],
+      "selected_smoothing": {
+        "method": "eol_quantile",
+        "quantile": 0.5,
+        "blend": 0.5
+      },
+      "inner_selection_score": 0.36526966891326584,
+      "raw_fold_score": 0.5721048247099033,
+      "honest_fold_score": 0.66611279983721
+    },
+    {
+      "held_out": "Train2",
+      "train_pool": [
+        "Train1",
+        "Train3",
+        "Train4"
+      ],
+      "selected_smoothing": {
+        "method": "eol_quantile",
+        "quantile": 1.0,
+        "blend": 1.0
+      },
+      "inner_selection_score": 0.4001564320655933,
+      "raw_fold_score": 0.5597669596571712,
+      "honest_fold_score": 0.5696461544089408
+    },
+    {
+      "held_out": "Train3",
+      "train_pool": [
+        "Train1",
+        "Train2",
+        "Train4"
+      ],
+      "selected_smoothing": {
+        "method": "eol_quantile",
+        "quantile": 0.5,
+        "blend": 0.75
+      },
+      "inner_selection_score": 0.5417967889913553,
+      "raw_fold_score": 0.09239378331480963,
+      "honest_fold_score": 0.10056768199209337
+    },
+    {
+      "held_out": "Train4",
+      "train_pool": [
+        "Train1",
+        "Train2",
+        "Train3"
+      ],
+      "selected_smoothing": {
+        "method": "eol_quantile",
+        "quantile": 0.5,
+        "blend": 0.5
+      },
+      "inner_selection_score": 0.4756876156775345,
+      "raw_fold_score": 0.44710192724049475,
+      "honest_fold_score": 0.4167039461410976
+    }
+  ]
+}

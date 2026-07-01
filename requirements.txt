@@ -1,0 +1,9 @@
+numpy>=1.24
+pandas>=2.0
+scipy>=1.10
+torch>=2.1
+tqdm>=4.66
+nptdms>=1.7
+pyarrow>=14.0
+matplotlib>=3.7
+
