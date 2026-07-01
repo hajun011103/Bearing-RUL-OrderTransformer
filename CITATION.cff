@@ -1,0 +1,60 @@
+cff-version: 1.2.0
+message: "If you use this software or the results in this repository, please cite the conference paper listed under preferred-citation."
+title: "Bearing Remaining Useful Life Prediction Using an Order-Domain Transformer and Causal End-of-Life Smoothing"
+abstract: "Code, honest leak-free evaluation, and figures for an order-domain Transformer with causal end-of-life smoothing for speed-robust bearing remaining-useful-life prediction (PHM Korea 2026)."
+type: software
+repository-code: "https://github.com/hajun011103/PHMKorea"
+license: MIT
+keywords:
+  - Bearing Remaining Useful Life
+  - Order-Domain Analysis
+  - Order Tracking
+  - Transformer
+  - Causal Temporal Consistency
+authors:
+  - family-names: Jang
+    given-names: Hajun
+    affiliation: "SUNY Korea"
+    email: hajun.jang@stonybrook.edu
+  - family-names: Jang
+    given-names: Sanha
+    affiliation: "SUNY Korea"
+  - family-names: Kim
+    given-names: Andrew H.
+    affiliation: "SUNY Korea"
+  - family-names: Lim
+    given-names: Hansol
+    affiliation: "SUNY Korea"
+  - family-names: Choi
+    given-names: Jongseong Brad
+    affiliation: "SUNY Korea / Stony Brook University"
+contact:
+  - family-names: Jang
+    given-names: Hajun
+    email: hajun.jang@stonybrook.edu
+preferred-citation:
+  type: conference-paper
+  title: "Bearing Remaining Useful Life Prediction Using an Order-Domain Transformer and Causal End-of-Life Smoothing"
+  year: 2026
+  authors:
+    - family-names: Jang
+      given-names: Hajun
+      affiliation: "SUNY Korea"
+    - family-names: Jang
+      given-names: Sanha
+      affiliation: "SUNY Korea"
+    - family-names: Kim
+      given-names: Andrew H.
+      affiliation: "SUNY Korea"
+    - family-names: Lim
+      given-names: Hansol
+      affiliation: "SUNY Korea"
+    - family-names: Choi
+      given-names: Jongseong Brad
+      affiliation: "SUNY Korea / Stony Brook University"
+  collection-title: "Proceedings of the PHM Korea 2026 Conference (Korean Society for Prognostics and Health Management, KSPHM)"
+  conference:
+    name: "PHM Korea 2026 Conference (KSPHM)"
+    country: KR
+  # TODO: fill in the exact conference dates, venue, page number, and the DBpia
+  # record URL once the proceedings are published.

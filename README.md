@@ -1,77 +1,141 @@
-# Order-Domain Transformer + Causal End-of-Life Smoothing for Bearing RUL
+# PHM Korea 2026 — Order-Domain Transformer for Bearing RUL
 
-Code for the PHM Korea 2026 poster:
+> **Speed-robust bearing remaining-useful-life prediction: rotational order tracking, a time-gap-aware Transformer, and causal end-of-life smoothing — evaluated without test-set leakage.**
 
-> **Bearing Remaining Useful Life Prediction Using an Order-Domain Transformer
-> and Causal End-of-Life Smoothing** — Hajun Jang, Sanha Jang, Andrew H. Kim,
-> Hansol Lim, Jongseong Brad Choi (SUNY Korea).
+[![PHM Korea 2026](https://img.shields.io/badge/PHM_Korea-2026-1f6feb)](https://www.phm.or.kr/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+![Python](https://img.shields.io/badge/python-3.11-blue.svg)
+[![CI](https://github.com/hajun011103/PHMKorea/actions/workflows/ci.yml/badge.svg)](https://github.com/hajun011103/PHMKorea/actions/workflows/ci.yml)
 
-Predicting bearing remaining useful life (RUL) from vibration under *varying
-speed* is hard for two reasons: speed changes smear defect-related spectral
-features, and segment-level predictions are temporally unstable. This project
-addresses both with a compact, physically motivated pipeline:
+This repository contains the code, the honest leak-free evaluation, and the figures
+for the PHM Korea 2026 poster **"Bearing Remaining Useful Life Prediction Using an
+Order-Domain Transformer and Causal End-of-Life Smoothing"** (Jang, Jang, Kim, Lim
+& Choi, SUNY Korea).
 
-1. **Order tracking** — resample each vibration acquisition onto the shaft-angle
-   grid so bearing-defect components (BPFO/BPFI/BSF/FTF and harmonics) stay at
-   fixed *orders* regardless of RPM drift.
+<p align="center">
+  <img src="figures/results/pipeline_overview.png" width="100%"><br>
+  <em>The method: 60 s vibration acquisitions under varying speed &rarr; order tracking (fault lines fixed in shaft order) &rarr; a time-gap-aware Transformer over the segment history &rarr; causal end-of-life quantile smoothing. Regenerate with <code>python scripts/make_overview_figure.py</code>.</em>
+</p>
+
+## Contents
+
+- [Overview](#overview)
+- [Why the order domain](#why-the-order-domain)
+- [Results](#results)
+- [Quickstart](#quickstart)
+- [Data](#data)
+- [Repository Layout](#repository-layout)
+- [Poster & Abstract](#poster--abstract)
+- [How to Cite](#how-to-cite)
+- [License](#license)
+
+## Overview
+
+Predicting the remaining useful life (RUL) of a bearing from vibration is hard
+under *varying operating speed* for two reasons: speed changes smear defect-related
+spectral features, and segment-level predictions are temporally unstable. This
+project addresses both with a compact, physically motivated pipeline:
+
+1. **Order tracking** — each vibration acquisition is resampled onto the shaft-angle
+   grid, so bearing-defect components (BPFO / BPFI / BSF / FTF and harmonics) stay at
+   fixed *orders* regardless of RPM drift ([`order_spectrum`](src/phm_pipeline/features.py)).
 2. **Time-gap-aware Transformer** — a Transformer encoder over segment-level
-   order-domain features that encodes true elapsed time and the acquisition gaps
-   between segments, and predicts RUL causally.
-3. **Causal end-of-life (EOL) smoothing** — post-process each RUL trajectory
-   using a causal running quantile of the *predicted* end-of-life, using only
-   information up to the current time step (safe for online use).
+   order-domain features that encodes the true elapsed time and the acquisition gaps
+   between segments, and predicts RUL causally ([`RULTransformer`](src/phm_pipeline/model.py)).
+3. **Causal end-of-life (EOL) smoothing** — each RUL trajectory is post-processed with
+   a causal running quantile of the *predicted* end-of-life, using only information up
+   to the current time step, so it is safe for online use
+   ([`apply_temporal_postprocess`](src/phm_pipeline/training.py)).
 
-## Results (honest, leak-free)
+## Why the order domain
+
+When the shaft speed changes during an acquisition, a fixed-Hz FFT smears each
+bearing-defect line into a broad hump, because the defect's frequency moves with RPM.
+Resampling onto shaft angle pins every defect to a fixed *order*, so the fault lines
+stay sharp and comparable across segments recorded at different speeds.
+
+<p align="center">
+  <img src="figures/results/order_vs_time_demo.png" width="78%"><br>
+  <em>Same synthetic signal with the shaft sweeping 1500 &rarr; 2400 rpm. Top: the fixed-Hz FFT smears the 1&times; shaft and BPFO (3.58&times;) lines into broad humps. Bottom: the order-domain spectrum keeps them as sharp peaks. Built with the repository's own <code>order_spectrum</code>.</em>
+</p>
+
+## Results
 
 The headline evaluation is **leave-one-bearing-out (LOBO)** on the four PHM Korea
 run-to-failure bearings, scored with the official competition score (higher is
-better, max 1.0). Every hyper-parameter that touches a held-out bearing is
-selected *without* looking at it: models are early-stopped on a tail split of the
-training bearings, and the EOL-smoothing hyper-parameters are chosen by an inner
-LOBO over the training bearings (see [`scripts/run_lobo.py`](scripts/run_lobo.py)).
+better, max 1.0). Every hyper-parameter that touches a held-out bearing is chosen
+*without looking at it*: models are early-stopped on a tail split of the training
+bearings, and the EOL-smoothing hyper-parameters are selected by an **inner LOBO**
+over the training bearings ([`scripts/run_lobo.py`](scripts/run_lobo.py)).
 
-| variant | what it measures | score | MAE (s) |
-| --- | --- | --- | --- |
-| raw (no smoothing) | honest models, no post-processing | 0.441 | 16,875 |
-| **honest (leak-free)** | **inner-selected causal EOL smoothing** | **0.462** | 15,925 |
-| oracle (ceiling) | smoothing tuned on the test folds | 0.466 | 16,531 |
+| Evaluation (KSPHM, 4 bearings) | Score ↑ | MAE (ks) ↓ | Leak-free |
+|:--|--:|--:|:--:|
+| LOBO — raw (no smoothing) | 0.441 | 16.9 | ✅ |
+| **LOBO — honest (leak-free)** | **0.462** | 15.9 | ✅ |
+| LOBO — oracle ceiling (smoothing tuned on test folds) | 0.466 | 16.5 | ❌ |
+| _previously reported (two stacked leaks)_ | _0.670_ | — | ❌ |
 
-> ⚠️ An earlier version reported **0.670**. That number stacked two optimistic
-> leaks — the smoothing quantile was tuned on the test folds, and each model was
-> early-stopped on the bearing it was scored on. Removing both drops the score to
-> **0.462**. We keep the honest number as the headline and report the oracle
-> ceiling and the old value transparently. See
-> [`docs/experiments.md`](docs/experiments.md) for the full accounting.
+> **On the honest number.** An earlier version reported **0.670**. That value
+> stacked two optimistic leaks — the smoothing quantile was tuned on the test folds,
+> *and* each model was early-stopped on the very bearing it was scored on. Removing
+> both drops the score to **0.462**. We keep the honest number as the headline and
+> report the oracle ceiling and the old value transparently. The full accounting is in
+> [`docs/experiments.md`](docs/experiments.md).
 
-With only four bearings, LOBO variance is high: the honest per-fold scores range
-from ~0.10 (Train3) to ~0.67 (Train1). A secondary late-life "tail" test and an
-external PRONOSTIA/FEMTO check are reported honestly (including their failure
-modes) in [`docs/experiments.md`](docs/experiments.md).
+<p align="center">
+  <img src="figures/results/result_honest_vs_reported.png" width="62%"><br>
+  <em>Removing test-set leakage: 0.670 &rarr; 0.462. Most of the drop is the early-stopping leak (raw score 0.555 &rarr; 0.441); the leak-free smoothing (0.462) is already within 0.004 of the oracle ceiling (0.466).</em>
+</p>
 
-## Reproduce
+<p align="center">
+  <img src="figures/results/result_lobo_scorecards.png" width="100%"><br>
+  <em>Honest LOBO by held-out bearing. With only four bearings the variance is high — from ~0.10 (Train3, poorly generalized) to ~0.67 (Train1).</em>
+</p>
 
-The extracted order-domain feature table is committed
-(`artifacts/features/train_full_order_domain.parquet`, a few hundred rows), so the
-modeling runs on CPU in minutes without the multi-GB raw signals.
+<p align="center">
+  <img src="figures/results/result_lobo_rul_trajectories.png" width="100%"><br>
+  <em>Honest LOBO RUL trajectories: raw Transformer (thin), causal-EOL-smoothed (thick), and true RUL (dashed). Smoothing stabilizes the trajectory without peeking into the future.</em>
+</p>
+
+> **Honest negative results.** A secondary *late-life tail* test — predict the last
+> 25% of each bearing from its early life, with the scale and smoothing selected on an
+> inner split — scores only **0.086** (100% over-predicted). A model that has never
+> seen a near-death bearing systematically over-estimates remaining life, which is
+> exactly why leave-one-**bearing**-out (the model sees complete lives of the *other*
+> bearings) is the meaningful protocol. An external **PRONOSTIA / FEMTO** domain-shift
+> check reaches ~0.38 and is a robustness probe, not a benchmark. See
+> [`docs/experiments.md`](docs/experiments.md).
+
+## Quickstart
+
+Requires **Python 3.11**. The extracted order-domain feature table is committed, so
+the modeling runs on CPU in minutes without the multi-GB raw signals.
 
 ```bash
-# 1. environment
-pip install -e .          # or: pip install -r requirements.txt
+# 1. Install
+python -m pip install -e .          # or: pip install -r requirements.txt
+#    (conda: conda env create -f environment.yml && conda activate phm-korea-rul)
 
-# 2. honest leave-one-bearing-out (writes artifacts/runs/lobo_order_domain_nested/)
+# 2. Honest leave-one-bearing-out (writes artifacts/runs/lobo_order_domain_nested/)
 python scripts/run_lobo.py
 
-# 3. honest late-life tail diagnostic
+# 3. Honest late-life tail diagnostic
 python scripts/run_tail_validation.py
+
+# 4. Regenerate the figures
+python scripts/make_overview_figure.py
+python scripts/make_result_figures.py
 ```
 
 `run_lobo.py` prints the raw / honest / oracle table and writes
 `nested_lobo_summary.json` plus the out-of-fold predictions.
 
-### Regenerating features from raw data
+## Data
 
-The raw archives are **not** in the repo (see [`docs/data.md`](docs/data.md) for
-how to obtain them and where to place them). With `data/Train/` populated:
+The raw bearing archives are **not** in this repository (each vibration ZIP is
+multi-GB, and the challenge data is not redistributable). Only the small extracted
+order-domain feature table under `artifacts/features/` is shipped. To rebuild it from
+the raw data:
 
 ```bash
 python scripts/extract_features.py \
@@ -84,55 +148,57 @@ python scripts/make_order_domain_features.py \
   --feature-mode order
 ```
 
-### External PRONOSTIA / FEMTO check
+**Where to get the data.** The PHM Korea challenge bearing data comes from the
+**KIMM Data Platform** (participant/registration access — not redistributable), and
+the external check uses the public **NASA FEMTO / PRONOSTIA** dataset. Exact,
+fetch-verified download links and access terms — plus public variable-speed
+substitutes (XJTU-SY, U. Ottawa, KAIST) — are in
+[`docs/data.md`](docs/data.md).
 
-A domain-shift diagnostic on the NASA FEMTO/PRONOSTIA dataset
-([`scripts/run_pronostia_order_test.py`](scripts/run_pronostia_order_test.py))
-trains the same pipeline on `Learning_set` and evaluates on the validation set.
-PRONOSTIA has fixed per-condition speeds and very short-life validation bearings,
-so treat it as a robustness probe, not a benchmark — the order-domain pipeline
-needs dataset-specific tuning to be competitive there.
+## Repository Layout
 
-## Repository layout
+- `src/phm_pipeline/`: the core library (the abstract method only) — `data.py`
+  (TDMS/ZIP + operation loading), `features.py` (order tracking + fault-band
+  features), `model.py` (`RULTransformer`), `losses.py` (official score + asymmetric
+  loss), `training.py` (datasets, training loop, causal smoothing, export).
+- `scripts/`: CLI entry points — feature extraction, `run_lobo.py`,
+  `run_tail_validation.py`, figure generation, external PRONOSTIA check.
+- `tests/`: unit tests (`pytest`).
+- `docs/`: [`data.md`](docs/data.md) (data sources) and
+  [`experiments.md`](docs/experiments.md) (design decisions + negative results).
+- `artifacts/features/`: the committed order-domain feature table.
+- `figures/results/`: figures regenerated from the honest runs.
 
-```
-src/phm_pipeline/     core library (the abstract method only)
-  data.py             TDMS/ZIP + operation-CSV loading, segment indexing
-  features.py         order tracking, order/envelope-order fault-band features
-  model.py            RULTransformer (time-gap-aware Transformer encoder)
-  losses.py           official score + asymmetric conservative loss
-  training.py         datasets, training loop, causal EOL smoothing, export
-scripts/              CLI entry points (feature extraction, run_lobo, tail, …)
-tests/                unit tests (pytest)
-docs/                 data.md, experiments.md (design decisions + negative results)
-artifacts/features/   the committed order-domain feature table
-figures/results/      result figures regenerated from the honest runs
-```
+Exploratory branches (wavelet / FNO / GRU encoders, DMD/SINDy dynamics features and
+augmentation, learned calibration, a physics loss, adaptive envelope and
+condition/equivalent-age features) were removed to keep the codebase focused on the
+abstract method; the rationale is recorded in [`docs/experiments.md`](docs/experiments.md).
 
-Result figures under `figures/results/` are regenerated from the honest runs by
-`scripts/make_result_figures.py`. The submitted poster figures
-(`figures/poster/`) are the as-presented artifact (they embed the earlier 0.670
-numbers) and are kept out of version control.
+## Poster & Abstract
 
-Exploratory branches (wavelet / FNO / GRU encoders, DMD/SINDy dynamics features
-and augmentation, learned calibration, a physics loss, adaptive envelope and
-condition/equivalent-age features) were removed to keep the codebase focused on
-the abstract method; the rationale and results are recorded in
-[`docs/experiments.md`](docs/experiments.md).
+The abstract is in [`HajunJang_PHMKorea2026_abstract.pdf`](HajunJang_PHMKorea2026_abstract.pdf).
+The submitted poster figures under `figures/poster/` are the as-presented artifact
+(they embed the earlier 0.670 numbers) and are kept out of version control; the result
+figures in this repository are regenerated from the honest, leak-free runs.
 
-## Tests
+## How to Cite
 
-```bash
-pip install -e ".[dev]"
-pytest -q
-```
+If you use this code or its results, please cite the PHM Korea 2026 paper:
 
-## Acknowledgment
+> Hajun Jang, Sanha Jang, Andrew H. Kim, Hansol Lim, and Jongseong Brad Choi,
+> "Bearing Remaining Useful Life Prediction Using an Order-Domain Transformer and
+> Causal End-of-Life Smoothing," *PHM Korea 2026 Conference* (Korean Society for
+> Prognostics and Health Management), Republic of Korea, 2026.
+
+A machine-readable citation is in [`CITATION.cff`](CITATION.cff). (The exact
+proceedings page and DBpia record are left as a `# TODO` until publication.)
+
+### Acknowledgment
 
 This work was supported by the National Research Foundation of Korea (NRF) grant
-funded by the Korea government (MSIT) (RS-2025-05515607).
+funded by the Korea government (MSIT) (No. RS-2025-05515607).
 
 ## License
 
-Code is released under the [MIT License](LICENSE). The license covers the source
-code only; the bearing datasets remain under their original terms.
+Released under the [MIT License](LICENSE). The license covers the source code only;
+the bearing datasets remain under their original terms.
