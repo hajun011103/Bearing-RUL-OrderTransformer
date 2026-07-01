@@ -5,7 +5,7 @@
 [![PHM Korea 2026](https://img.shields.io/badge/PHM_Korea-2026-1f6feb)](https://www.phm.or.kr/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 ![Python](https://img.shields.io/badge/python-3.11-blue.svg)
-[![CI](https://github.com/hajun011103/PHMKorea/actions/workflows/ci.yml/badge.svg)](https://github.com/hajun011103/PHMKorea/actions/workflows/ci.yml)
+[![CI](https://github.com/hajun011103/Bearing-RUL-OrderTransformer/actions/workflows/ci.yml/badge.svg)](https://github.com/hajun011103/Bearing-RUL-OrderTransformer/actions/workflows/ci.yml)
 
 This repository contains the code, the honest leak-free evaluation, and the figures
 for the PHM Korea 2026 poster **"Bearing Remaining Useful Life Prediction Using an

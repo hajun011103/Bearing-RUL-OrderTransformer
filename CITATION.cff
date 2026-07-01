@@ -3,7 +3,7 @@ message: "If you use this software or the results in this repository, please cit
 title: "Bearing Remaining Useful Life Prediction Using an Order-Domain Transformer and Causal End-of-Life Smoothing"
 abstract: "Code, honest leak-free evaluation, and figures for an order-domain Transformer with causal end-of-life smoothing for speed-robust bearing remaining-useful-life prediction (PHM Korea 2026)."
 type: software
-repository-code: "https://github.com/hajun011103/PHMKorea"
+repository-code: "https://github.com/hajun011103/Bearing-RUL-OrderTransformer"
 license: MIT
 keywords:
   - Bearing Remaining Useful Life
