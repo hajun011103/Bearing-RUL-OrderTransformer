@@ -106,8 +106,13 @@ scripts/              CLI entry points (feature extraction, run_lobo, tail, …)
 tests/                unit tests (pytest)
 docs/                 data.md, experiments.md (design decisions + negative results)
 artifacts/features/   the committed order-domain feature table
-figures/              poster and result figures
+figures/results/      result figures regenerated from the honest runs
 ```
+
+Result figures under `figures/results/` are regenerated from the honest runs by
+`scripts/make_result_figures.py`. The submitted poster figures
+(`figures/poster/`) are the as-presented artifact (they embed the earlier 0.670
+numbers) and are kept out of version control.
 
 Exploratory branches (wavelet / FNO / GRU encoders, DMD/SINDy dynamics features
 and augmentation, learned calibration, a physics loss, adaptive envelope and
