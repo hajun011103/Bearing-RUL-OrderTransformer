@@ -7,14 +7,13 @@
 ![Python](https://img.shields.io/badge/python-3.11-blue.svg)
 [![CI](https://github.com/hajun011103/Bearing-RUL-OrderTransformer/actions/workflows/ci.yml/badge.svg)](https://github.com/hajun011103/Bearing-RUL-OrderTransformer/actions/workflows/ci.yml)
 
-This repository contains the code, the honest leak-free evaluation, and the figures
-for the PHM Korea 2026 poster **"Bearing Remaining Useful Life Prediction Using an
-Order-Domain Transformer and Causal End-of-Life Smoothing"** (Jang, Jang, Kim, Lim
-& Choi, SUNY Korea).
+Code, honest leak-free evaluation, and figures for the PHM Korea 2026 poster
+**"Bearing Remaining Useful Life Prediction Using an Order-Domain Transformer and
+Causal End-of-Life Smoothing"** (Jang, Jang, Kim, Lim & Choi, SUNY Korea).
 
 <p align="center">
-  <img src="figures/results/pipeline_overview.png" width="100%"><br>
-  <em>The method: 60 s vibration acquisitions under varying speed &rarr; order tracking (fault lines fixed in shaft order) &rarr; a time-gap-aware Transformer over the segment history &rarr; causal end-of-life quantile smoothing. Regenerate with <code>python scripts/make_overview_figure.py</code>.</em>
+  <img src="figures/results/rpm_to_order.gif" width="88%"><br>
+  <em>As the shaft speed sweeps up, a bearing-defect line moves in the fixed-Hz spectrum and, integrated over the acquisition, smears into a broad hump (left); in the order domain it stays a sharp line (right). This speed-robustness is why the pipeline works on the order domain. Regenerate with <code>python scripts/make_hero_gif.py</code>.</em>
 </p>
 
 ## Contents
@@ -25,7 +24,7 @@ Order-Domain Transformer and Causal End-of-Life Smoothing"** (Jang, Jang, Kim, L
 - [Quickstart](#quickstart)
 - [Data](#data)
 - [Repository Layout](#repository-layout)
-- [Poster & Abstract](#poster--abstract)
+- [Poster](#poster)
 - [How to Cite](#how-to-cite)
 - [License](#license)
 
@@ -33,31 +32,31 @@ Order-Domain Transformer and Causal End-of-Life Smoothing"** (Jang, Jang, Kim, L
 
 Predicting the remaining useful life (RUL) of a bearing from vibration is hard
 under *varying operating speed* for two reasons: speed changes smear defect-related
-spectral features, and segment-level predictions are temporally unstable. This
-project addresses both with a compact, physically motivated pipeline:
+spectral features, and segment-level predictions are temporally unstable. The
+method is a compact, physically motivated pipeline with three stages:
 
-1. **Order tracking** — each vibration acquisition is resampled onto the shaft-angle
-   grid, so bearing-defect components (BPFO / BPFI / BSF / FTF and harmonics) stay at
-   fixed *orders* regardless of RPM drift ([`order_spectrum`](src/phm_pipeline/features.py)).
-2. **Time-gap-aware Transformer** — a Transformer encoder over segment-level
-   order-domain features that encodes the true elapsed time and the acquisition gaps
-   between segments, and predicts RUL causally ([`RULTransformer`](src/phm_pipeline/model.py)).
-3. **Causal end-of-life (EOL) smoothing** — each RUL trajectory is post-processed with
+1. **Order tracking.** Each 60-second vibration acquisition is resampled from time
+   onto the shaft-angle grid, so bearing-defect components (BPFO / BPFI / BSF / FTF
+   and their harmonics) stay at fixed *orders* regardless of RPM drift. Compact
+   order-domain and envelope-order fault-band features are extracted per segment
+   ([`order_spectrum`, `extract_segment_features`](src/phm_pipeline/features.py)).
+2. **Time-gap-aware Transformer.** A Transformer encoder reads the causal history of
+   segment-level order-domain features and encodes both the true elapsed time and the
+   gaps between acquisitions, then predicts RUL — so it learns how degradation evolves
+   over time rather than from a single segment ([`RULTransformer`](src/phm_pipeline/model.py)).
+3. **Causal end-of-life (EOL) smoothing.** Each RUL trajectory is post-processed with
    a causal running quantile of the *predicted* end-of-life, using only information up
-   to the current time step, so it is safe for online use
+   to the current step. This removes segment-to-segment jitter without ever peeking
+   into the future, so it is safe for online use
    ([`apply_temporal_postprocess`](src/phm_pipeline/training.py)).
 
 ## Why the order domain
 
 When the shaft speed changes during an acquisition, a fixed-Hz FFT smears each
-bearing-defect line into a broad hump, because the defect's frequency moves with RPM.
-Resampling onto shaft angle pins every defect to a fixed *order*, so the fault lines
-stay sharp and comparable across segments recorded at different speeds.
-
-<p align="center">
-  <img src="figures/results/order_vs_time_demo.png" width="78%"><br>
-  <em>Same synthetic signal with the shaft sweeping 1500 &rarr; 2400 rpm. Top: the fixed-Hz FFT smears the 1&times; shaft and BPFO (3.58&times;) lines into broad humps. Bottom: the order-domain spectrum keeps them as sharp peaks. Built with the repository's own <code>order_spectrum</code>.</em>
-</p>
+bearing-defect line into a broad hump, because the defect's frequency moves with RPM
+(the animation above). Resampling onto shaft angle pins every defect to a fixed
+*order*, so the fault lines stay sharp and comparable across segments recorded at
+different speeds — a cleaner, speed-invariant input for the model.
 
 ## Results
 
@@ -83,7 +82,7 @@ over the training bearings ([`scripts/run_lobo.py`](scripts/run_lobo.py)).
 > [`docs/experiments.md`](docs/experiments.md).
 
 <p align="center">
-  <img src="figures/results/result_honest_vs_reported.png" width="62%"><br>
+  <img src="figures/results/result_honest_vs_reported.png" width="60%"><br>
   <em>Removing test-set leakage: 0.670 &rarr; 0.462. Most of the drop is the early-stopping leak (raw score 0.555 &rarr; 0.441); the leak-free smoothing (0.462) is already within 0.004 of the oracle ceiling (0.466).</em>
 </p>
 
@@ -123,7 +122,7 @@ python scripts/run_lobo.py
 python scripts/run_tail_validation.py
 
 # 4. Regenerate the figures
-python scripts/make_overview_figure.py
+python scripts/make_hero_gif.py
 python scripts/make_result_figures.py
 ```
 
@@ -152,8 +151,7 @@ python scripts/make_order_domain_features.py \
 **KIMM Data Platform** (participant/registration access — not redistributable), and
 the external check uses the public **NASA FEMTO / PRONOSTIA** dataset. Exact,
 fetch-verified download links and access terms — plus public variable-speed
-substitutes (XJTU-SY, U. Ottawa, KAIST) — are in
-[`docs/data.md`](docs/data.md).
+substitutes (XJTU-SY, U. Ottawa, KAIST) — are in [`docs/data.md`](docs/data.md).
 
 ## Repository Layout
 
@@ -174,12 +172,19 @@ augmentation, learned calibration, a physics loss, adaptive envelope and
 condition/equivalent-age features) were removed to keep the codebase focused on the
 abstract method; the rationale is recorded in [`docs/experiments.md`](docs/experiments.md).
 
-## Poster & Abstract
+## Poster
 
-The abstract is in [`HajunJang_PHMKorea2026_abstract.pdf`](HajunJang_PHMKorea2026_abstract.pdf).
-The submitted poster figures under `figures/poster/` are the as-presented artifact
-(they embed the earlier 0.670 numbers) and are kept out of version control; the result
-figures in this repository are regenerated from the honest, leak-free runs.
+<p align="center">
+  <img src="HajunJang_PHMKorea2026Posterv2.png" width="100%">
+</p>
+
+Submission files: [poster (PDF)](HajunJang_PHMKorea2026Posterv2.pdf) ·
+[abstract (PDF)](HajunJang_PHMKorea2026_abstract.pdf).
+
+> The poster is the **as-submitted** artifact. Its per-bearing scores (~0.49–0.76,
+> with q = 0.90 smoothing) come from the earlier evaluation protocol; the honest,
+> leak-free re-evaluation in this repository is the **0.462** headline above. The
+> difference is accounted for in [`docs/experiments.md`](docs/experiments.md).
 
 ## How to Cite
 

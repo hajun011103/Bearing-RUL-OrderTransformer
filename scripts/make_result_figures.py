@@ -169,7 +169,6 @@ def fig_scorecards(per_run: pd.DataFrame, summary: dict) -> None:
     for i, v in enumerate(per_run["mae_s"] / 1000.0):
         ax_mae.text(i, v + 0.3, f"{v:.1f}", ha="center", va="bottom", fontsize=9)
 
-    fig.suptitle("Honest leave-one-bearing-out result", x=0.02, y=1.00, ha="left", fontsize=17, fontweight="bold")
     save_figure(fig, "result_lobo_scorecards")
 
 
@@ -193,7 +192,6 @@ def fig_trajectories(pred: pd.DataFrame, per_run: pd.DataFrame) -> None:
                 transform=ax.transAxes, fontweight="bold", color=COLORS["ink"])
         if run_id == runs[0]:
             ax.legend(frameon=False, fontsize=9, loc="upper right")
-    fig.suptitle("Honest LOBO RUL trajectories", x=0.02, y=1.01, ha="left", fontsize=17, fontweight="bold")
     fig.tight_layout()
     save_figure(fig, "result_lobo_rul_trajectories")
 
@@ -215,7 +213,6 @@ def fig_eol(pred: pd.DataFrame) -> None:
         ax.spines[["top", "right"]].set_visible(False)
         if run_id == runs[0]:
             ax.legend(frameon=False, fontsize=9, loc="best")
-    fig.suptitle("Honest LOBO predicted end-of-life convergence", x=0.02, y=1.01, ha="left", fontsize=17, fontweight="bold")
     fig.tight_layout()
     save_figure(fig, "result_lobo_eol_convergence")
 
@@ -232,7 +229,6 @@ def fig_scatter(pred: pd.DataFrame) -> None:
     ax.set_ylim(0, limit)
     ax.set_xlabel("True RUL (h)")
     ax.set_ylabel("Predicted RUL (h)")
-    ax.set_title("Honest LOBO: predicted vs true RUL")
     ax.grid(True, color=COLORS["grid"], lw=0.5)
     ax.spines[["top", "right"]].set_visible(False)
     ax.legend(frameon=False, fontsize=9, loc="upper left")
@@ -254,7 +250,6 @@ def fig_error_over_life(pred: pd.DataFrame) -> None:
         ax.grid(True, color=COLORS["grid"], lw=0.5)
         ax.spines[["top", "right"]].set_visible(False)
         ax.text(0.03, 0.9, "rust = overprediction", transform=ax.transAxes, color=COLORS["muted"], fontsize=9)
-    fig.suptitle("Honest LOBO error distribution over bearing life", x=0.02, y=1.01, ha="left", fontsize=17, fontweight="bold")
     fig.tight_layout()
     save_figure(fig, "result_lobo_error_over_life")
 
@@ -270,7 +265,6 @@ def fig_honest_vs_reported(summary: dict) -> None:
     ax.set_xticklabels(labels)
     ax.set_ylim(0, 0.75)
     ax.set_ylabel("LOBO official score")
-    ax.set_title("Removing test-set leakage: 0.670 → 0.462")
     ax.grid(True, axis="y", color=COLORS["grid"], lw=0.5)
     ax.spines[["top", "right"]].set_visible(False)
     for i, v in enumerate(values):
@@ -304,12 +298,6 @@ def fig_tail_limitation() -> None:
         ax.spines[["top", "right"]].set_visible(False)
         if run_id == runs[0]:
             ax.legend(frameon=False, fontsize=8, loc="upper right")
-    honest = summary["honest"]
-    fig.suptitle(
-        f"Honest late-life tail: score {honest['score']:.3f}, {100 * honest['over_prediction_rate']:.0f}% over-predicted "
-        "— a negative result (model never saw a near-death bearing)",
-        x=0.02, y=1.03, ha="left", fontsize=13, fontweight="bold",
-    )
     fig.tight_layout()
     save_figure(fig, "result_tail_limitation")
 
