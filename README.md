@@ -67,33 +67,22 @@ better, max 1.0). Every hyper-parameter that touches a held-out bearing is chose
 bearings, and the EOL-smoothing hyper-parameters are selected by an **inner LOBO**
 over the training bearings ([`scripts/run_lobo.py`](scripts/run_lobo.py)).
 
-| Evaluation (KSPHM, 4 bearings) | Score ↑ | MAE (ks) ↓ | Leak-free |
-|:--|--:|--:|:--:|
-| LOBO — raw (no smoothing) | 0.441 | 16.9 | ✅ |
-| **LOBO — honest (leak-free)** | **0.462** | 15.9 | ✅ |
-| LOBO — oracle ceiling (smoothing tuned on test folds) | 0.466 | 16.5 | ❌ |
-| _previously reported (two stacked leaks)_ | _0.670_ | — | ❌ |
-
-> **On the honest number.** An earlier version reported **0.670**. That value
-> stacked two optimistic leaks — the smoothing quantile was tuned on the test folds,
-> *and* each model was early-stopped on the very bearing it was scored on. Removing
-> both drops the score to **0.462**. We keep the honest number as the headline and
-> report the oracle ceiling and the old value transparently. The full accounting is in
-> [`docs/experiments.md`](docs/experiments.md).
+The honest, leak-free headline is **0.462** (MAE 15.9 ks). An earlier version
+reported 0.670 — the figure below shows why.
 
 <p align="center">
-  <img src="figures/results/result_honest_vs_reported.png" width="60%"><br>
-  <em>Removing test-set leakage: 0.670 &rarr; 0.462. Most of the drop is the early-stopping leak (raw score 0.555 &rarr; 0.441); the leak-free smoothing (0.462) is already within 0.004 of the oracle ceiling (0.466).</em>
-</p>
-
-<p align="center">
-  <img src="figures/results/result_lobo_scorecards.png" width="100%"><br>
-  <em>Honest LOBO by held-out bearing. With only four bearings the variance is high — from ~0.10 (Train3, poorly generalized) to ~0.67 (Train1).</em>
+  <img src="figures/results/result_honest_vs_reported.png" width="72%"><br>
+  <em>Two leaks inflated the earlier <b>0.670</b>: the smoothing quantile was tuned on the test folds, and each model was early-stopped on the bearing it was scored on. Removing both gives the honest <b>0.462</b>. The raw score (no smoothing) is 0.441, and the leak-free smoothing is already within 0.004 of the oracle ceiling (0.466). The full accounting is in <a href="docs/experiments.md"><code>docs/experiments.md</code></a>.</em>
 </p>
 
 <p align="center">
   <img src="figures/results/result_lobo_rul_trajectories.png" width="100%"><br>
-  <em>Honest LOBO RUL trajectories: raw Transformer (thin), causal-EOL-smoothed (thick), and true RUL (dashed). Smoothing stabilizes the trajectory without peeking into the future.</em>
+  <em>Honest LOBO RUL trajectories: the raw Transformer (coral), the causal-EOL-smoothed prediction (teal), and the true RUL (dashed). Smoothing stabilizes each trajectory using only past predictions.</em>
+</p>
+
+<p align="center">
+  <img src="figures/results/result_lobo_by_bearing.png" width="100%"><br>
+  <em>Per-bearing score and error. With only four bearings the variance is high — from ~0.10 (Train3, which generalizes poorly) to ~0.67 (Train1).</em>
 </p>
 
 > **Honest negative results.** A secondary *late-life tail* test — predict the last
