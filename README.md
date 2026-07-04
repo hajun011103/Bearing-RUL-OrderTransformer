@@ -12,8 +12,8 @@ Code, honest leak-free evaluation, and figures for the PHM Korea 2026 poster
 Causal End-of-Life Smoothing"** (Jang, Jang, Kim, Lim & Choi, SUNY Korea).
 
 <p align="center">
-  <img src="figures/results/rpm_to_order.gif" width="88%"><br>
-  <em>As the shaft speed sweeps up, a bearing-defect line moves in the fixed-Hz spectrum and, integrated over the acquisition, smears into a broad hump (left); in the order domain it stays a sharp line (right). This speed-robustness is why the pipeline works on the order domain. Regenerate with <code>python scripts/make_hero_gif.py</code>.</em>
+  <img src="figures/results/overview.png" width="100%"><br>
+  <em>System overview — from raw vibration under varying speed, through rotational order tracking and a time-gap-aware Transformer over the segment history, to a causal, temporally consistent RUL trajectory (stages 2–4 use real data from this repository). Regenerate with <code>python scripts/make_overview_figure.py</code>.</em>
 </p>
 
 ## Contents
@@ -53,10 +53,15 @@ method is a compact, physically motivated pipeline with three stages:
 ## Why the order domain
 
 When the shaft speed changes during an acquisition, a fixed-Hz FFT smears each
-bearing-defect line into a broad hump, because the defect's frequency moves with RPM
-(the animation above). Resampling onto shaft angle pins every defect to a fixed
-*order*, so the fault lines stay sharp and comparable across segments recorded at
-different speeds — a cleaner, speed-invariant input for the model.
+bearing-defect line into a broad hump, because the defect's frequency moves with RPM.
+Resampling onto shaft angle pins every defect to a fixed *order*, so the fault lines
+stay sharp and comparable across segments recorded at different speeds — a cleaner,
+speed-invariant input for the model.
+
+<p align="center">
+  <img src="figures/results/rpm_to_order.gif" width="82%"><br>
+  <em>As the shaft speed sweeps 1500 &rarr; 2400 rpm, a bearing-defect line moves in the fixed-Hz spectrum and, integrated over the acquisition, smears into a broad hump (left); in the order domain it stays a sharp line (right). Regenerate with <code>python scripts/make_hero_gif.py</code>.</em>
+</p>
 
 ## Results
 
