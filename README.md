@@ -1,4 +1,4 @@
-# PHM Korea 2026 — Order-Domain Transformer for Bearing RUL
+# Order-Domain Transformer for Bearing RUL
 
 > **Speed-robust bearing remaining-useful-life prediction: rotational order tracking, a time-gap-aware Transformer, and causal end-of-life smoothing — evaluated without test-set leakage.**
 
@@ -7,7 +7,7 @@
 ![Python](https://img.shields.io/badge/python-3.11-blue.svg)
 [![CI](https://github.com/hajun011103/Bearing-RUL-OrderTransformer/actions/workflows/ci.yml/badge.svg)](https://github.com/hajun011103/Bearing-RUL-OrderTransformer/actions/workflows/ci.yml)
 
-Code, honest leak-free evaluation, and figures for the PHM Korea 2026 poster
+Code, a leak-free evaluation, and figures for the PHM Korea 2026 poster
 **"Bearing Remaining Useful Life Prediction Using an Order-Domain Transformer and
 Causal End-of-Life Smoothing"** (Jang, Jang, Kim, Lim & Choi, SUNY Korea).
 
@@ -73,17 +73,17 @@ better, max 1.0). Every hyper-parameter that touches a held-out bearing is chose
 bearings, and the EOL-smoothing hyper-parameters are selected by an **inner LOBO**
 over the training bearings ([`scripts/run_lobo.py`](scripts/run_lobo.py)).
 
-The honest, leak-free headline is **0.462** (MAE 15.9 ks). An earlier version
+The leak-free headline is **0.462** (MAE 15.9 ks). An earlier version
 reported 0.670 — the figure below shows why.
 
 <p align="center">
   <img src="figures/results/result_honest_vs_reported.png" width="72%"><br>
-  <em>Two leaks inflated the earlier <b>0.670</b>: the smoothing quantile was tuned on the test folds, and each model was early-stopped on the bearing it was scored on. Removing both gives the honest <b>0.462</b>. The raw score (no smoothing) is 0.441, and the leak-free smoothing is already within 0.004 of the oracle ceiling (0.466). The full accounting is in <a href="docs/experiments.md"><code>docs/experiments.md</code></a>.</em>
+  <em>Two leaks inflated the earlier <b>0.670</b>: the smoothing quantile was tuned on the test folds, and each model was early-stopped on the bearing it was scored on. Removing both gives the leak-free <b>0.462</b>. The raw score (no smoothing) is 0.441, and the leak-free smoothing is already within 0.004 of the oracle ceiling (0.466). The full accounting is in <a href="docs/experiments.md"><code>docs/experiments.md</code></a>.</em>
 </p>
 
 <p align="center">
   <img src="figures/results/result_lobo_rul_trajectories.png" width="100%"><br>
-  <em>Honest LOBO RUL trajectories: the raw Transformer (coral), the causal-EOL-smoothed prediction (teal), and the true RUL (dashed). Smoothing stabilizes each trajectory using only past predictions.</em>
+  <em>Leak-free LOBO RUL trajectories: the raw Transformer (coral), the causal-EOL-smoothed prediction (teal), and the true RUL (dashed). Smoothing stabilizes each trajectory using only past predictions.</em>
 </p>
 
 <p align="center">
@@ -91,7 +91,7 @@ reported 0.670 — the figure below shows why.
   <em>Per-bearing score and error. With only four bearings the variance is high — from ~0.10 (Train3, which generalizes poorly) to ~0.67 (Train1).</em>
 </p>
 
-> **Honest caveat.** This method has real limitations — high LOBO variance with only
+> **Caveat.** This method has real limitations — high LOBO variance with only
 > four bearings, poor late-life extrapolation, and external domain shift. They are laid
 > out in [Limitations](#limitations) below.
 
@@ -100,12 +100,12 @@ reported 0.670 — the figure below shows why.
 This is a small-data methodology study; treat the numbers as an honest demonstration,
 not a leaderboard result.
 
-- **High variance (N = 4).** Leave-one-bearing-out over four bearings is noisy — honest
+- **High variance (N = 4).** Leave-one-bearing-out over four bearings is noisy —
   per-bearing scores range from ~0.10 to ~0.67.
 - **Poor generalization to some bearings.** Train3 (~0.10) shows the model can fail to
   generalize to an unseen bearing whose degradation differs from the training bearings.
 - **No late-life extrapolation.** A model trained only on early life over-predicts near
-  end-of-life; the honest late-life *tail* test scores **0.086** (100% over-predicted).
+  end-of-life; the late-life *tail* test scores **0.086** (100% over-predicted).
   This is exactly why leave-one-**bearing**-out — where the model has seen complete lives
   of the *other* bearings — is the meaningful protocol.
 - **Domain shift.** On the external **PRONOSTIA / FEMTO** dataset (fixed per-condition
@@ -125,10 +125,10 @@ the modeling runs on CPU in minutes without the multi-GB raw signals.
 python -m pip install -e .          # or: pip install -r requirements.txt
 #    (conda: conda env create -f environment.yml && conda activate phm-korea-rul)
 
-# 2. Honest leave-one-bearing-out (writes artifacts/runs/lobo_order_domain_nested/)
+# 2. Leak-free leave-one-bearing-out (writes artifacts/runs/lobo_order_domain_nested/)
 python scripts/run_lobo.py
 
-# 3. Honest late-life tail diagnostic
+# 3. Late-life tail diagnostic
 python scripts/run_tail_validation.py
 
 # 4. Regenerate the figures
@@ -138,7 +138,7 @@ python scripts/make_result_figures.py
 
 `run_lobo.py` prints the raw / honest / oracle table and writes
 `nested_lobo_summary.json` plus the out-of-fold predictions. The committed
-`artifacts/runs/lobo_order_domain_nested/` **is** exactly that output, so the honest
+`artifacts/runs/lobo_order_domain_nested/` **is** exactly that output, so the leak-free
 **0.462** headline reproduces from the committed feature table alone — no raw signals
 needed. (The external PRONOSTIA number instead needs the FEMTO dataset; see
 [Limitations](#limitations).)
@@ -179,7 +179,7 @@ substitutes (XJTU-SY, U. Ottawa, KAIST) — are in [`docs/data.md`](docs/data.md
 - `docs/`: [`data.md`](docs/data.md) (data sources) and
   [`experiments.md`](docs/experiments.md) (design decisions + negative results).
 - `artifacts/features/`: the committed order-domain feature table.
-- `figures/results/`: figures regenerated from the honest runs.
+- `figures/results/`: figures regenerated from the leak-free runs.
 
 ### Scripts
 
@@ -188,7 +188,7 @@ substitutes (XJTU-SY, U. Ottawa, KAIST) — are in [`docs/data.md`](docs/data.md
 | `extract_features.py` | Build the full feature table from the raw TDMS + operation data. |
 | `make_order_domain_features.py` | Select the order-domain feature subset the models use. |
 | `run_lobo.py` | Leak-free nested leave-one-bearing-out — the headline result. |
-| `run_tail_validation.py` | Honest late-life tail diagnostic (inner-split scale/smoothing selection). |
+| `run_tail_validation.py` | Late-life tail diagnostic (inner-split scale/smoothing selection). |
 | `train.py` | Train a single model with score-based early stopping. |
 | `evaluate_split.py` | Evaluate a checkpoint on the training-time split policy. |
 | `predict.py` | Export row-level RUL predictions from a checkpoint. |
@@ -211,8 +211,7 @@ Submission files: [poster (PDF)](HajunJang_PHMKorea2026Posterv2.pdf) ·
 [abstract (PDF)](HajunJang_PHMKorea2026_abstract.pdf).
 
 > The poster is the **as-submitted** artifact. Its per-bearing scores (~0.49–0.76,
-> with q = 0.90 smoothing) come from the earlier evaluation protocol; the honest,
-> leak-free re-evaluation in this repository is the **0.462** headline above. The
+> with q = 0.90 smoothing) come from the earlier evaluation protocol; the leak-free re-evaluation in this repository is the **0.462** headline above. The
 > difference is accounted for in [`docs/experiments.md`](docs/experiments.md).
 
 ## How to Cite
