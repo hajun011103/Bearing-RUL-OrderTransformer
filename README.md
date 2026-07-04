@@ -21,6 +21,7 @@ Causal End-of-Life Smoothing"** (Jang, Jang, Kim, Lim & Choi, SUNY Korea).
 - [Overview](#overview)
 - [Why the order domain](#why-the-order-domain)
 - [Results](#results)
+- [Limitations](#limitations)
 - [Quickstart](#quickstart)
 - [Data](#data)
 - [Repository Layout](#repository-layout)
@@ -90,14 +91,29 @@ reported 0.670 — the figure below shows why.
   <em>Per-bearing score and error. With only four bearings the variance is high — from ~0.10 (Train3, which generalizes poorly) to ~0.67 (Train1).</em>
 </p>
 
-> **Honest negative results.** A secondary *late-life tail* test — predict the last
-> 25% of each bearing from its early life, with the scale and smoothing selected on an
-> inner split — scores only **0.086** (100% over-predicted). A model that has never
-> seen a near-death bearing systematically over-estimates remaining life, which is
-> exactly why leave-one-**bearing**-out (the model sees complete lives of the *other*
-> bearings) is the meaningful protocol. An external **PRONOSTIA / FEMTO** domain-shift
-> check reaches ~0.38 and is a robustness probe, not a benchmark. See
-> [`docs/experiments.md`](docs/experiments.md).
+> **Honest caveat.** This method has real limitations — high LOBO variance with only
+> four bearings, poor late-life extrapolation, and external domain shift. They are laid
+> out in [Limitations](#limitations) below.
+
+## Limitations
+
+This is a small-data methodology study; treat the numbers as an honest demonstration,
+not a leaderboard result.
+
+- **High variance (N = 4).** Leave-one-bearing-out over four bearings is noisy — honest
+  per-bearing scores range from ~0.10 to ~0.67.
+- **Poor generalization to some bearings.** Train3 (~0.10) shows the model can fail to
+  generalize to an unseen bearing whose degradation differs from the training bearings.
+- **No late-life extrapolation.** A model trained only on early life over-predicts near
+  end-of-life; the honest late-life *tail* test scores **0.086** (100% over-predicted).
+  This is exactly why leave-one-**bearing**-out — where the model has seen complete lives
+  of the *other* bearings — is the meaningful protocol.
+- **Domain shift.** On the external **PRONOSTIA / FEMTO** dataset (fixed per-condition
+  speeds, very short validation bearings) the pipeline reaches only ~0.38 — a robustness
+  probe, not a benchmark. That number requires the external dataset and is **not**
+  reproducible from the committed files.
+
+The full accounting of what was tried and why is in [`docs/experiments.md`](docs/experiments.md).
 
 ## Quickstart
 
@@ -121,7 +137,11 @@ python scripts/make_result_figures.py
 ```
 
 `run_lobo.py` prints the raw / honest / oracle table and writes
-`nested_lobo_summary.json` plus the out-of-fold predictions.
+`nested_lobo_summary.json` plus the out-of-fold predictions. The committed
+`artifacts/runs/lobo_order_domain_nested/` **is** exactly that output, so the honest
+**0.462** headline reproduces from the committed feature table alone — no raw signals
+needed. (The external PRONOSTIA number instead needs the FEMTO dataset; see
+[Limitations](#limitations).)
 
 ## Data
 
@@ -160,6 +180,21 @@ substitutes (XJTU-SY, U. Ottawa, KAIST) — are in [`docs/data.md`](docs/data.md
   [`experiments.md`](docs/experiments.md) (design decisions + negative results).
 - `artifacts/features/`: the committed order-domain feature table.
 - `figures/results/`: figures regenerated from the honest runs.
+
+### Scripts
+
+| Script | Purpose |
+|:--|:--|
+| `extract_features.py` | Build the full feature table from the raw TDMS + operation data. |
+| `make_order_domain_features.py` | Select the order-domain feature subset the models use. |
+| `run_lobo.py` | Leak-free nested leave-one-bearing-out — the headline result. |
+| `run_tail_validation.py` | Honest late-life tail diagnostic (inner-split scale/smoothing selection). |
+| `train.py` | Train a single model with score-based early stopping. |
+| `evaluate_split.py` | Evaluate a checkpoint on the training-time split policy. |
+| `predict.py` | Export row-level RUL predictions from a checkpoint. |
+| `postprocess_temporal_consistency.py` | Apply causal EOL / decay smoothing to a predictions CSV. |
+| `run_pronostia_order_test.py` | External PRONOSTIA / FEMTO domain-shift check (needs the FEMTO data). |
+| `make_overview_figure.py`, `make_hero_gif.py`, `make_result_figures.py` | Regenerate the overview, hero GIF, and result figures. |
 
 Exploratory branches (wavelet / FNO / GRU encoders, DMD/SINDy dynamics features and
 augmentation, learned calibration, a physics loss, adaptive envelope and

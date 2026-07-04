@@ -787,6 +787,50 @@ def apply_temporal_postprocess_to_array(
     return corrected.to_numpy(dtype=float)
 
 
+def select_temporal_smoothing(
+    frame: pd.DataFrame,
+    candidates: list[tuple[str, float | None, float | None]],
+    *,
+    group_column: str,
+    time_column: str,
+    target_column: str,
+    prediction_column: str = "predicted_rul_s",
+    floor_s: float = 1.0,
+) -> tuple[dict[str, object], float]:
+    """Pick the smoothing candidate that maximizes the official score on ``frame``.
+
+    ``candidates`` is a list of ``(method, quantile, blend)`` tuples; ``method``
+    may be ``"none"`` (no smoothing at all). This is meant for **leak-free**
+    selection on an inner split — never call it on the set whose score you intend
+    to report. Returns ``(choice, score)`` where ``choice`` is a dict with keys
+    ``method``/``quantile``/``blend``.
+    """
+
+    if not candidates:
+        raise ValueError("no smoothing candidates provided")
+    actual = frame[target_column].to_numpy(dtype=float)
+    best: tuple[dict[str, object], float] | None = None
+    for method, quantile, blend in candidates:
+        if method == "none":
+            pred = frame[prediction_column].to_numpy(dtype=float)
+        else:
+            pred = apply_temporal_postprocess(
+                frame,
+                method=method,
+                group_column=group_column,
+                time_column=time_column,
+                prediction_column=prediction_column,
+                eol_quantile=float(quantile),
+                blend=float(blend),
+                floor_s=floor_s,
+            ).to_numpy(dtype=float)
+        score = float(np.mean(official_score_numpy(actual, pred)))
+        if best is None or score > best[1]:
+            best = ({"method": method, "quantile": quantile, "blend": blend}, score)
+    assert best is not None
+    return best
+
+
 @torch.no_grad()
 def export_predictions(
     *,

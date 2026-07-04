@@ -87,7 +87,6 @@ def mini_vibration(ax):
 
 def mini_order(ax):
     fs, n = 25_600.0, int(25_600 * 1.4)
-    t = np.arange(n) / fs
     rpm = np.linspace(1500, 2300, n)
     phase = 2 * np.pi * np.cumsum(rpm / 60.0) / fs
     rng = np.random.default_rng(1)

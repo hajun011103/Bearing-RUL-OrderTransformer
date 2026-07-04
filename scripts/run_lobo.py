@@ -27,7 +27,6 @@ from __future__ import annotations
 
 import argparse
 import json
-from itertools import combinations
 from pathlib import Path
 import sys
 
@@ -48,6 +47,7 @@ from phm_pipeline.training import (
     load_feature_table,
     prediction_to_rul,
     resolve_device,
+    select_temporal_smoothing,
 )
 
 
@@ -247,24 +247,17 @@ def apply_smoothing(
     return smoothed.to_numpy(dtype=float)
 
 
-def score_frame(frame: pd.DataFrame, prediction: np.ndarray, target_column: str) -> float:
-    actual = frame[target_column].to_numpy(dtype=float)
-    return float(np.mean(official_score_numpy(actual, prediction)))
-
-
 def select_smoothing(frame: pd.DataFrame, args: argparse.Namespace) -> tuple[dict, float]:
-    """Pick the smoothing candidate that maximizes score on ``frame``."""
+    """Pick the smoothing candidate that maximizes score on ``frame`` (leak-free)."""
 
-    best_choice: dict | None = None
-    best_score = -np.inf
-    for method, quantile, blend in SMOOTHING_GRID:
-        prediction = apply_smoothing(frame, method, quantile, blend, args)
-        score = score_frame(frame, prediction, args.target_column)
-        if score > best_score:
-            best_score = score
-            best_choice = {"method": method, "quantile": quantile, "blend": blend}
-    assert best_choice is not None
-    return best_choice, best_score
+    return select_temporal_smoothing(
+        frame,
+        SMOOTHING_GRID,
+        group_column=args.group_column,
+        time_column=args.time_column,
+        target_column=args.target_column,
+        floor_s=args.floor_s,
+    )
 
 
 def summarize(frame: pd.DataFrame, args: argparse.Namespace) -> dict[str, float]:
